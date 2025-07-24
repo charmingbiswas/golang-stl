@@ -1,2 +1,5 @@
 # golang-stl
-Standard Template Library written for Golang for the most common data structures. This library aims to be similar to C++ STL. Has support for generics!
+
+1. Standard Template Library written for Golang for the most common data structures.
+2. This library aims to be similar to C++ STL.
+3. Has support for generics!
