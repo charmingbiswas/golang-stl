@@ -7,7 +7,7 @@ type stack[T any] struct {
 	internalSliceSize int
 }
 
-func (s *stack[T]) NewStack() *stack[T] {
+func NewStack[T any]() *stack[T] {
 	return &stack[T]{
 		internalSlice:     make([]T, 0, 10),
 		internalSliceSize: 0,
@@ -21,7 +21,7 @@ func (s *stack[T]) Push(val T) {
 
 func (s *stack[T]) Pop() error {
 	if s.internalSliceSize == 0 {
-		return errors.New("Stack is empty!")
+		return errors.New("stack is empty")
 	}
 	s.internalSlice = s.internalSlice[:s.internalSliceSize]
 	s.internalSliceSize--
@@ -32,7 +32,7 @@ func (s *stack[T]) Top() (T, error) {
 	if s.internalSliceSize != 0 {
 		return s.internalSlice[s.internalSliceSize-1], nil
 	} else {
-		return *new(T), errors.New("Stack is empty!")
+		return *new(T), errors.New("stack is empty")
 	}
 }
 
