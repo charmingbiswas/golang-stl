@@ -1,3 +1,4 @@
+// This package provides implementation for heap data structure with generics support.
 package heap
 
 import (
@@ -9,6 +10,8 @@ type heap[T any] struct {
 	less func(a, b T) bool
 }
 
+// Initializes an empty max heap.
+// Works with default built in types.
 func NewMaxHeap[T cmp.Ordered]() *heap[T] {
 	return &heap[T]{
 		data: make([]T, 0, 10),
@@ -16,6 +19,8 @@ func NewMaxHeap[T cmp.Ordered]() *heap[T] {
 	}
 }
 
+// Initializes an empty min heap.
+// Works with default built in types.
 func NewMinHeap[T cmp.Ordered]() *heap[T] {
 	return &heap[T]{
 		data: make([]T, 0, 10),
@@ -23,6 +28,11 @@ func NewMinHeap[T cmp.Ordered]() *heap[T] {
 	}
 }
 
+// Initializes an empty heap.
+// Works with any custom type as defined by the user.
+// Takes a comparator function that defines the behaviour of the heap.
+// To make a min heap, use a < b comparison.
+// To make a max heap, use a > b comparison.
 func NewHeapWithFunc[T any](comparator func(a, b T) bool) *heap[T] {
 	return &heap[T]{
 		data: make([]T, 0, 10),
