@@ -1,6 +1,8 @@
 go 1.24.5
 
 use (
+	./cmd
+	./heap
 	./queue
 	./stack
 )
