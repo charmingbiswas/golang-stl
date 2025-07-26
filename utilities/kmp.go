@@ -24,7 +24,15 @@ func lps(pattern string) []int {
 	return LPS
 }
 
-func KmpPatternMatching(input string, pattern string) []int {
+func KmpPatternMatching(input string, pattern string) ([]int, bool) {
+	if len(input) == 0 || len(pattern) == 0 {
+		return []int{}, false
+	}
+
+	if len(pattern) > len(input) {
+		return []int{}, false
+	}
+
 	LPS := lps(pattern)
 	M := len(input)
 	N := len(pattern)
@@ -40,7 +48,7 @@ func KmpPatternMatching(input string, pattern string) []int {
 		if j == N {
 			ans = append(ans, i-j)
 			j = LPS[j-1]
-		} else if input[i] != pattern[j] {
+		} else if i < M && input[i] != pattern[j] {
 			if j != 0 {
 				j = LPS[j-1]
 			} else {
@@ -48,5 +56,5 @@ func KmpPatternMatching(input string, pattern string) []int {
 			}
 		}
 	}
-	return ans
+	return ans, true
 }
