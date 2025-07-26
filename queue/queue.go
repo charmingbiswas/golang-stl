@@ -10,15 +10,27 @@ func NewQueue[T any]() *queue[T] {
 	}
 }
 
-func (this *queue[T]) Push(val T) {
+func (this *queue[T]) PushFront(val T) {
+	this.data = append([]T{val}, this.data...)
+}
+
+func (this *queue[T]) PushBack(val T) {
 	this.data = append(this.data, val)
 }
 
-func (this *queue[T]) Pop() bool {
+func (this *queue[T]) PopFront() bool {
 	if len(this.data) == 0 {
 		return false
 	}
 	this.data = this.data[1:]
+	return true
+}
+
+func (this *queue[T]) PopBack() bool {
+	if len(this.data) == 0 {
+		return false
+	}
+	this.data = this.data[:len(this.data)-1]
 	return true
 }
 
@@ -28,6 +40,14 @@ func (this *queue[T]) Front() (T, bool) {
 	}
 
 	return this.data[0], true
+}
+
+func (this *queue[T]) Back() (T, bool) {
+	if len(this.data) == 0 {
+		return *new(T), false
+	}
+
+	return this.data[len(this.data)-1], true
 }
 
 func (this *queue[T]) IsEmpty() bool {

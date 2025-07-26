@@ -3,5 +3,4 @@ package main
 
 // Do manual testing of your data structures and algorithms here
 func main() {
-
 }
