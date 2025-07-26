@@ -6,4 +6,5 @@ use (
 	./list
 	./queue
 	./stack
+	./utilities
 )
