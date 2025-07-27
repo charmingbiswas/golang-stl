@@ -18,36 +18,34 @@ func (this *queue[T]) PushBack(val T) {
 	this.data = append(this.data, val)
 }
 
-func (this *queue[T]) PopFront() bool {
+func (this *queue[T]) PopFront() {
 	if len(this.data) == 0 {
-		return false
+		return
 	}
 	this.data = this.data[1:]
-	return true
 }
 
-func (this *queue[T]) PopBack() bool {
+func (this *queue[T]) PopBack() {
 	if len(this.data) == 0 {
-		return false
+		return
 	}
 	this.data = this.data[:len(this.data)-1]
-	return true
 }
 
-func (this *queue[T]) Front() (T, bool) {
+func (this *queue[T]) Front() T {
 	if len(this.data) == 0 {
-		return *new(T), false
+		return *new(T)
 	}
 
-	return this.data[0], true
+	return this.data[0]
 }
 
-func (this *queue[T]) Back() (T, bool) {
+func (this *queue[T]) Back() T {
 	if len(this.data) == 0 {
-		return *new(T), false
+		return *new(T)
 	}
 
-	return this.data[len(this.data)-1], true
+	return this.data[len(this.data)-1]
 }
 
 func (this *queue[T]) IsEmpty() bool {

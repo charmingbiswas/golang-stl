@@ -14,20 +14,19 @@ func (this *stack[T]) Push(val T) {
 	this.data = append(this.data, val)
 }
 
-func (this *stack[T]) Pop() bool {
+func (this *stack[T]) Pop() {
 	if len(this.data) == 0 {
-		return false
+		return
 	}
 	this.data = this.data[:len(this.data)-1]
-	return true
 }
 
-func (this *stack[T]) Top() (T, bool) {
+func (this *stack[T]) Top() T {
 	if len(this.data) == 0 {
-		return *new(T), false
+		return *new(T)
 	}
 
-	return this.data[len(this.data)-1], true
+	return this.data[len(this.data)-1]
 }
 
 func (this *stack[T]) IsEmpty() bool {

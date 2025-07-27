@@ -45,23 +45,22 @@ func (this *heap[T]) Push(val T) {
 	this.heapifyUp(len(this.data) - 1)
 }
 
-func (this *heap[T]) Pop() bool {
+func (this *heap[T]) Pop() {
 	if len(this.data) == 0 {
-		return false
+		return
 	}
 	lastIndex := len(this.data) - 1
 	this.data[0] = this.data[lastIndex]
 	this.data = this.data[:lastIndex]
 	this.heapifyDown(0)
-	return true
 }
 
-func (this *heap[T]) Top() (T, bool) {
+func (this *heap[T]) Top() T {
 	if len(this.data) == 0 {
-		return *new(T), false
+		return *new(T) // return zero value for the target type
 	}
 
-	return this.data[0], true
+	return this.data[0]
 }
 
 func (this *heap[T]) Size() int {
