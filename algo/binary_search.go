@@ -1,6 +1,8 @@
 package algo
 
-import "cmp"
+import (
+	"cmp"
+)
 
 // Standard binary search algorithm.
 // Works with in-built comparable types.
@@ -30,7 +32,6 @@ func LowerBound[T cmp.Ordered](array []T, target T) int {
 
 	for low <= high {
 		mid := low + (high-low)/2
-
 		if array[mid] < target {
 			low = mid + 1
 		} else if array[mid] > target {
@@ -39,8 +40,7 @@ func LowerBound[T cmp.Ordered](array []T, target T) int {
 			high = mid - 1
 		}
 	}
-
-	if low > len(array) || array[low] != target {
+	if low >= len(array) || array[low] != target {
 		return -1
 	}
 
