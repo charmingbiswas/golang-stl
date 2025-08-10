@@ -6,6 +6,8 @@ import (
 
 // Standard binary search algorithm.
 // Works with in-built comparable types.
+// Returns index of the target element.
+// Returns -1 if not found.
 func BinarySearch[T cmp.Ordered](array []T, target T) int {
 	low := 0
 	high := len(array) - 1
@@ -26,6 +28,8 @@ func BinarySearch[T cmp.Ordered](array []T, target T) int {
 
 // Standard binary search lowerbound algorithm.
 // Works with in-built comparable types.
+// Returns index of the target element.
+// Returns -1 if not found.
 func LowerBound[T cmp.Ordered](array []T, target T) int {
 	low := 0
 	high := len(array) - 1
@@ -49,6 +53,8 @@ func LowerBound[T cmp.Ordered](array []T, target T) int {
 
 // Standard binary search upperbound algorithm.
 // Works with in-built comparable types.
+// Returns index of the target element.
+// Returns -1 if not found.
 func UpperBound[T cmp.Ordered](array []T, target T) int {
 	low := 0
 	high := len(array) - 1

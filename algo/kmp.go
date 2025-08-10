@@ -25,6 +25,8 @@ func lps(pattern string) []int {
 	return LPS
 }
 
+// Returns an array of indices where the pattern has been found in the input string.
+// Returns empty array if none found.
 func KnuthMorrisPrattStringMatching(input string, pattern string) []int {
 	ans := make([]int, 0)
 	if len(input) < len(pattern) || (len(input) == 0 || len(pattern) == 0) {
