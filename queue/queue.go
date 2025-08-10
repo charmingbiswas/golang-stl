@@ -1,17 +1,19 @@
 // This package implements a deque.
 package queue
 
-import "container/list"
+import (
+	"container/list"
+)
 
 type queue[T any] struct {
-	data list.List
+	data *list.List
 }
 
 // Initializes an empty queue.
 // Works with any generic data type.
 func NewQueue[T any]() *queue[T] {
 	return &queue[T]{
-		data: *list.New(),
+		data: list.New(),
 	}
 }
 
