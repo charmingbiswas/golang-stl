@@ -45,6 +45,10 @@ func LowerBound[T cmp.Ordered](array []T, target T) int {
 		}
 	}
 
+	if low >= len(array) {
+		return -1
+	}
+
 	return low
 }
 
@@ -67,6 +71,8 @@ func UpperBound[T cmp.Ordered](array []T, target T) int {
 			low = mid + 1
 		}
 	}
-
+	if high < 0 {
+		return -1
+	}
 	return high
 }
