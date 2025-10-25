@@ -214,7 +214,7 @@ func (t *rbTree[T, V]) deleteNode(n *node[T, V]) {
 		if successorNode.Parent == n {
 			replacementNode.Parent = successorNode
 		} else {
-			t.transplant(n, successorNode)
+			t.transplant(successorNode, successorNode.Right)
 			successorNode.Right = n.Right
 			successorNode.Right.Parent = successorNode
 		}
@@ -433,7 +433,7 @@ func (t *rbTree[T, V]) transplant(n, m *node[T, V]) {
 		n.Parent.Right = m
 	}
 
-	n.Parent = m.Parent
+	m.Parent = n.Parent
 }
 
 // Returns the minimum key in a sub tree rooted at node n
