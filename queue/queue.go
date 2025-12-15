@@ -17,17 +17,17 @@ func NewQueue[T any]() *Queue[T] {
 	}
 }
 
-// Add an element to the front of the queue.
+// Adds an element to the front of the queue.
 func (q *Queue[T]) PushFront(val T) {
 	q.data.PushFront(val)
 }
 
-// Add an element to the end of the queue.
+// Adds an element to the end of the queue.
 func (q *Queue[T]) PushBack(val T) {
 	q.data.PushBack(val)
 }
 
-// Remove an element from the front of the queue.
+// Removes an element from the front of the queue.
 func (q *Queue[T]) PopFront() {
 	if q.data.Len() == 0 {
 		return
@@ -35,7 +35,7 @@ func (q *Queue[T]) PopFront() {
 	q.data.Remove(q.data.Front())
 }
 
-// Remove an element from the back of the queue.
+// Removes an element from the back of the queue.
 func (q *Queue[T]) PopBack() {
 	if q.data.Len() == 0 {
 		return
@@ -60,11 +60,12 @@ func (q *Queue[T]) Back() T {
 }
 
 // Checks if the queue is empty.
-// Return boolean.
+// Returns boolean.
 func (q *Queue[T]) IsEmpty() bool {
 	return q.data.Len() == 0
 }
 
+// Returns the current size of the queue.
 func (q *Queue[T]) Size() int {
 	return q.data.Len()
 }
