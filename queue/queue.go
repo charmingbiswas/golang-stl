@@ -18,49 +18,53 @@ func NewQueue[T any]() *Queue[T] {
 }
 
 // Add an element to the front of the queue.
-func (this *Queue[T]) PushFront(val T) {
-	this.data.PushFront(val)
+func (q *Queue[T]) PushFront(val T) {
+	q.data.PushFront(val)
 }
 
 // Add an element to the end of the queue.
-func (this *Queue[T]) PushBack(val T) {
-	this.data.PushBack(val)
+func (q *Queue[T]) PushBack(val T) {
+	q.data.PushBack(val)
 }
 
 // Remove an element from the front of the queue.
-func (this *Queue[T]) PopFront() {
-	if this.data.Len() == 0 {
+func (q *Queue[T]) PopFront() {
+	if q.data.Len() == 0 {
 		return
 	}
-	this.data.Remove(this.data.Front())
+	q.data.Remove(q.data.Front())
 }
 
 // Remove an element from the back of the queue.
-func (this *Queue[T]) PopBack() {
-	if this.data.Len() == 0 {
+func (q *Queue[T]) PopBack() {
+	if q.data.Len() == 0 {
 		return
 	}
-	this.data.Remove(this.data.Back())
+	q.data.Remove(q.data.Back())
 }
 
 // Returns the first element in the queue.
-func (this *Queue[T]) Front() T {
-	if this.data.Len() == 0 {
+func (q *Queue[T]) Front() T {
+	if q.data.Len() == 0 {
 		return *new(T)
 	}
-	return this.data.Front().Value.(T)
+	return q.data.Front().Value.(T)
 }
 
 // Returns the last element in the queue.
-func (this *Queue[T]) Back() T {
-	if this.data.Len() == 0 {
+func (q *Queue[T]) Back() T {
+	if q.data.Len() == 0 {
 		return *new(T)
 	}
-	return this.data.Back().Value.(T)
+	return q.data.Back().Value.(T)
 }
 
 // Checks if the queue is empty.
 // Return boolean.
-func (this *Queue[T]) IsEmpty() bool {
-	return this.data.Len() == 0
+func (q *Queue[T]) IsEmpty() bool {
+	return q.data.Len() == 0
+}
+
+func (q *Queue[T]) Size() int {
+	return q.data.Len()
 }

@@ -40,64 +40,64 @@ func NewHeapWithFunc[T any](comparator func(a, b T) bool) *Heap[T] {
 	}
 }
 
-func (this *Heap[T]) Push(val T) {
-	this.data = append(this.data, val)
-	this.heapifyUp(len(this.data) - 1)
+func (h *Heap[T]) Push(val T) {
+	h.data = append(h.data, val)
+	h.heapifyUp(len(h.data) - 1)
 }
 
-func (this *Heap[T]) Pop() {
-	if len(this.data) == 0 {
+func (h *Heap[T]) Pop() {
+	if len(h.data) == 0 {
 		return
 	}
-	lastIndex := len(this.data) - 1
-	this.data[0] = this.data[lastIndex]
-	this.data = this.data[:lastIndex]
-	this.heapifyDown(0)
+	lastIndex := len(h.data) - 1
+	h.data[0] = h.data[lastIndex]
+	h.data = h.data[:lastIndex]
+	h.heapifyDown(0)
 }
 
-func (this *Heap[T]) Top() T {
-	if len(this.data) == 0 {
+func (h *Heap[T]) Top() T {
+	if len(h.data) == 0 {
 		return *new(T) // return zero value for the target type
 	}
 
-	return this.data[0]
+	return h.data[0]
 }
 
-func (this *Heap[T]) Size() int {
-	return len(this.data)
+func (h *Heap[T]) Size() int {
+	return len(h.data)
 }
 
-func (this *Heap[T]) IsEmpty() bool {
-	return len(this.data) == 0
+func (h *Heap[T]) IsEmpty() bool {
+	return len(h.data) == 0
 }
 
-func (this *Heap[T]) heapifyUp(index int) {
+func (h *Heap[T]) heapifyUp(index int) {
 	currentIndex := index
 	for currentIndex > 0 {
 		parentIndex := (currentIndex - 1) / 2
-		if !this.less(this.data[currentIndex], this.data[parentIndex]) {
+		if !h.less(h.data[currentIndex], h.data[parentIndex]) {
 			break
 		}
 
-		this.data[currentIndex], this.data[parentIndex] = this.data[parentIndex], this.data[currentIndex]
+		h.data[currentIndex], h.data[parentIndex] = h.data[parentIndex], h.data[currentIndex]
 
 		currentIndex = parentIndex
 	}
 }
 
-func (this *Heap[T]) heapifyDown(index int) {
+func (h *Heap[T]) heapifyDown(index int) {
 	currentIndex := index
 
-	for currentIndex < len(this.data) {
+	for currentIndex < len(h.data) {
 		smallerIndex := currentIndex
 		leftChildIndex := 2*currentIndex + 1
 		rightChildIndex := 2*currentIndex + 2
 
-		if leftChildIndex < len(this.data) && this.less(this.data[leftChildIndex], this.data[smallerIndex]) {
+		if leftChildIndex < len(h.data) && h.less(h.data[leftChildIndex], h.data[smallerIndex]) {
 			smallerIndex = leftChildIndex
 		}
 
-		if rightChildIndex < len(this.data) && this.less(this.data[rightChildIndex], this.data[smallerIndex]) {
+		if rightChildIndex < len(h.data) && h.less(h.data[rightChildIndex], h.data[smallerIndex]) {
 			smallerIndex = rightChildIndex
 		}
 
@@ -105,7 +105,7 @@ func (this *Heap[T]) heapifyDown(index int) {
 			break
 		}
 
-		this.data[smallerIndex], this.data[currentIndex] = this.data[currentIndex], this.data[smallerIndex]
+		h.data[smallerIndex], h.data[currentIndex] = h.data[currentIndex], h.data[smallerIndex]
 
 		currentIndex = smallerIndex
 	}

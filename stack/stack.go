@@ -10,25 +10,29 @@ func NewStack[T any]() *Stack[T] {
 	}
 }
 
-func (this *Stack[T]) Push(val T) {
-	this.data = append(this.data, val)
+func (st *Stack[T]) Push(val T) {
+	st.data = append(st.data, val)
 }
 
-func (this *Stack[T]) Pop() {
-	if len(this.data) == 0 {
+func (st *Stack[T]) Pop() {
+	if len(st.data) == 0 {
 		return
 	}
-	this.data = this.data[:len(this.data)-1]
+	st.data = st.data[:len(st.data)-1]
 }
 
-func (this *Stack[T]) Top() T {
-	if len(this.data) == 0 {
+func (st *Stack[T]) Top() T {
+	if len(st.data) == 0 {
 		return *new(T)
 	}
 
-	return this.data[len(this.data)-1]
+	return st.data[len(st.data)-1]
 }
 
-func (this *Stack[T]) IsEmpty() bool {
-	return len(this.data) == 0
+func (st *Stack[T]) IsEmpty() bool {
+	return len(st.data) == 0
+}
+
+func (st *Stack[T]) Size() int {
+	return len(st.data)
 }
