@@ -3,6 +3,11 @@ package queue
 
 import (
 	"container/list"
+	"errors"
+)
+
+var (
+	ErrEmptyQueue = errors.New("queue is empty")
 )
 
 type Queue[T any] struct {
@@ -28,35 +33,41 @@ func (q *Queue[T]) PushBack(val T) {
 }
 
 // Removes an element from the front of the queue.
-func (q *Queue[T]) PopFront() {
+// Returns an error if queue is empty.
+func (q *Queue[T]) PopFront() error {
 	if q.data.Len() == 0 {
-		return
+		return ErrEmptyQueue
 	}
 	q.data.Remove(q.data.Front())
+	return nil
 }
 
 // Removes an element from the back of the queue.
-func (q *Queue[T]) PopBack() {
+// Returns an error is queue is empty.
+func (q *Queue[T]) PopBack() error {
 	if q.data.Len() == 0 {
-		return
+		return ErrEmptyQueue
 	}
 	q.data.Remove(q.data.Back())
+	return nil
 }
 
 // Returns the first element in the queue.
-func (q *Queue[T]) Front() T {
+// Retuns an error if queue is empty.
+func (q *Queue[T]) Front() (T, error) {
 	if q.data.Len() == 0 {
-		return *new(T)
+		return *new(T), ErrEmptyQueue
 	}
-	return q.data.Front().Value.(T)
+	return q.data.Front().Value.(T), nil
 }
 
 // Returns the last element in the queue.
-func (q *Queue[T]) Back() T {
+// Returns an error if queue is empty.
+func (q *Queue[T]) Back() (T, error) {
 	if q.data.Len() == 0 {
-		return *new(T)
+		return *new(T), ErrEmptyQueue
 	}
-	return q.data.Back().Value.(T)
+	return q.data.Back().Value.(T), nil
 }
 
 // Checks if the queue is empty.
