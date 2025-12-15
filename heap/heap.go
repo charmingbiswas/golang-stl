@@ -5,15 +5,15 @@ import (
 	"cmp"
 )
 
-type heap[T any] struct {
+type Heap[T any] struct {
 	data []T
 	less func(a, b T) bool
 }
 
 // Initializes an empty max heap.
 // Works with default built in types.
-func NewMaxHeap[T cmp.Ordered]() *heap[T] {
-	return &heap[T]{
+func NewMaxHeap[T cmp.Ordered]() *Heap[T] {
+	return &Heap[T]{
 		data: make([]T, 0, 10),
 		less: func(a, b T) bool { return a > b },
 	}
@@ -21,8 +21,8 @@ func NewMaxHeap[T cmp.Ordered]() *heap[T] {
 
 // Initializes an empty min heap.
 // Works with default built in types.
-func NewMinHeap[T cmp.Ordered]() *heap[T] {
-	return &heap[T]{
+func NewMinHeap[T cmp.Ordered]() *Heap[T] {
+	return &Heap[T]{
 		data: make([]T, 0, 10),
 		less: func(a, b T) bool { return a < b },
 	}
@@ -33,19 +33,19 @@ func NewMinHeap[T cmp.Ordered]() *heap[T] {
 // Takes a comparator function that defines the behaviour of the heap.
 // To make a min heap, use a < b comparison.
 // To make a max heap, use a > b comparison.
-func NewHeapWithFunc[T any](comparator func(a, b T) bool) *heap[T] {
-	return &heap[T]{
+func NewHeapWithFunc[T any](comparator func(a, b T) bool) *Heap[T] {
+	return &Heap[T]{
 		data: make([]T, 0, 10),
 		less: comparator,
 	}
 }
 
-func (this *heap[T]) Push(val T) {
+func (this *Heap[T]) Push(val T) {
 	this.data = append(this.data, val)
 	this.heapifyUp(len(this.data) - 1)
 }
 
-func (this *heap[T]) Pop() {
+func (this *Heap[T]) Pop() {
 	if len(this.data) == 0 {
 		return
 	}
@@ -55,7 +55,7 @@ func (this *heap[T]) Pop() {
 	this.heapifyDown(0)
 }
 
-func (this *heap[T]) Top() T {
+func (this *Heap[T]) Top() T {
 	if len(this.data) == 0 {
 		return *new(T) // return zero value for the target type
 	}
@@ -63,15 +63,15 @@ func (this *heap[T]) Top() T {
 	return this.data[0]
 }
 
-func (this *heap[T]) Size() int {
+func (this *Heap[T]) Size() int {
 	return len(this.data)
 }
 
-func (this *heap[T]) IsEmpty() bool {
+func (this *Heap[T]) IsEmpty() bool {
 	return len(this.data) == 0
 }
 
-func (this *heap[T]) heapifyUp(index int) {
+func (this *Heap[T]) heapifyUp(index int) {
 	currentIndex := index
 	for currentIndex > 0 {
 		parentIndex := (currentIndex - 1) / 2
@@ -85,7 +85,7 @@ func (this *heap[T]) heapifyUp(index int) {
 	}
 }
 
-func (this *heap[T]) heapifyDown(index int) {
+func (this *Heap[T]) heapifyDown(index int) {
 	currentIndex := index
 
 	for currentIndex < len(this.data) {

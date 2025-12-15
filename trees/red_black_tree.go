@@ -15,34 +15,34 @@ const (
 	BLACK color = "black"
 )
 
-type node[T cmp.Ordered, V any] struct {
+type Node[T cmp.Ordered, V any] struct {
 	Key       T
 	Val       V
 	NodeColor color
-	Left      *node[T, V]
-	Right     *node[T, V]
-	Parent    *node[T, V]
+	Left      *Node[T, V]
+	Right     *Node[T, V]
+	Parent    *Node[T, V]
 }
 
-type rbTree[T cmp.Ordered, V any] struct {
-	Root *node[T, V]
-	NIL  *node[T, V]
+type RbTree[T cmp.Ordered, V any] struct {
+	Root *Node[T, V]
+	NIL  *Node[T, V]
 }
 
-func NewRedBlackTree[T cmp.Ordered, V any]() *rbTree[T, V] {
-	nilNode := &node[T, V]{
+func NewRedBlackTree[T cmp.Ordered, V any]() *RbTree[T, V] {
+	nilNode := &Node[T, V]{
 		NodeColor: BLACK,
 	}
-	return &rbTree[T, V]{
+	return &RbTree[T, V]{
 		Root: nilNode,
 		NIL:  nilNode,
 	}
 }
 
-func (t *rbTree[T, V]) Insert(key T, value V) {
+func (t *RbTree[T, V]) Insert(key T, value V) {
 
 	// create a new node
-	newNode := &node[T, V]{
+	newNode := &Node[T, V]{
 		Key:       key,
 		Val:       value,
 		NodeColor: RED,
@@ -81,7 +81,7 @@ func (t *rbTree[T, V]) Insert(key T, value V) {
 	t.insertFixup(newNode)
 }
 
-func (t *rbTree[T, V]) Delete(key T) bool {
+func (t *RbTree[T, V]) Delete(key T) bool {
 	node := t.search(key)
 
 	if node == t.NIL {
@@ -92,7 +92,7 @@ func (t *rbTree[T, V]) Delete(key T) bool {
 	return true
 }
 
-func (t *rbTree[T, V]) Search(key T) (V, bool) {
+func (t *RbTree[T, V]) Search(key T) (V, bool) {
 	n := t.search(key)
 	if n == t.NIL {
 		return t.NIL.Val, false
@@ -101,13 +101,13 @@ func (t *rbTree[T, V]) Search(key T) (V, bool) {
 	return n.Val, true
 }
 
-func (t *rbTree[T, V]) IsEmpty() bool {
+func (t *RbTree[T, V]) IsEmpty() bool {
 	return t.Root == t.NIL
 }
 
-func (t *rbTree[T, V]) PrintInOrder() {}
+func (t *RbTree[T, V]) PrintInOrder() {}
 
-func (t *rbTree[T, V]) insertFixup(n *node[T, V]) {
+func (t *RbTree[T, V]) insertFixup(n *Node[T, V]) {
 	// check if inserted node's parent color is RED
 	// meaning newly inserted node is NOT the root node
 	for n.Parent.NodeColor == RED {
@@ -180,12 +180,12 @@ func (t *rbTree[T, V]) insertFixup(n *node[T, V]) {
 	t.Root.NodeColor = BLACK // ROOT is always black
 }
 
-func (t *rbTree[T, V]) deleteNode(n *node[T, V]) {
+func (t *RbTree[T, V]) deleteNode(n *Node[T, V]) {
 
 	originalNode := n
 	originalColor := originalNode.NodeColor
 
-	var replacementNode *node[T, V]
+	var replacementNode *Node[T, V]
 
 	// There are 3 scenarios which we need to consider
 	// If left child of node to be deleted is NIL
@@ -231,7 +231,7 @@ func (t *rbTree[T, V]) deleteNode(n *node[T, V]) {
 	}
 }
 
-func (t *rbTree[T, V]) deleteFixup(n *node[T, V]) {
+func (t *RbTree[T, V]) deleteFixup(n *Node[T, V]) {
 	/*
 		There are 4 types of fixes that we will encounter:
 		We will call sibling of node n as m
@@ -334,7 +334,7 @@ func (t *rbTree[T, V]) deleteFixup(n *node[T, V]) {
 	n.NodeColor = BLACK // final step
 }
 
-func (t *rbTree[T, V]) leftRotate(n *node[T, V]) {
+func (t *RbTree[T, V]) leftRotate(n *Node[T, V]) {
 	/*
 			  1
 			 / \
@@ -375,7 +375,7 @@ func (t *rbTree[T, V]) leftRotate(n *node[T, V]) {
 	x.Parent = y
 }
 
-func (t *rbTree[T, V]) rightRotate(n *node[T, V]) {
+func (t *RbTree[T, V]) rightRotate(n *Node[T, V]) {
 	// Same logic as left rorate, just flip left child with right child and vice versa
 	x := n
 	y := n.Left
@@ -400,7 +400,7 @@ func (t *rbTree[T, V]) rightRotate(n *node[T, V]) {
 	x.Parent = y
 }
 
-func (t *rbTree[T, V]) search(key T) *node[T, V] {
+func (t *RbTree[T, V]) search(key T) *Node[T, V] {
 	current := t.Root
 	for current != t.NIL {
 		if key == current.Key {
@@ -415,7 +415,7 @@ func (t *rbTree[T, V]) search(key T) *node[T, V] {
 	return t.NIL
 }
 
-func (t *rbTree[T, V]) transplant(n, m *node[T, V]) {
+func (t *RbTree[T, V]) transplant(n, m *Node[T, V]) {
 	// We need to deal with three cases
 	// If n is root node
 	// If n is left child of parent
@@ -437,7 +437,7 @@ func (t *rbTree[T, V]) transplant(n, m *node[T, V]) {
 }
 
 // Returns the minimum key in a sub tree rooted at node n
-func (t *rbTree[T, V]) minimum(n *node[T, V]) *node[T, V] {
+func (t *RbTree[T, V]) minimum(n *Node[T, V]) *Node[T, V] {
 	for n.Left != t.NIL {
 		n = n.Left
 	}

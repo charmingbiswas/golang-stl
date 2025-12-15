@@ -1,27 +1,27 @@
 package stack
 
-type stack[T any] struct {
+type Stack[T any] struct {
 	data []T
 }
 
-func NewStack[T any]() *stack[T] {
-	return &stack[T]{
+func NewStack[T any]() *Stack[T] {
+	return &Stack[T]{
 		data: make([]T, 0, 10),
 	}
 }
 
-func (this *stack[T]) Push(val T) {
+func (this *Stack[T]) Push(val T) {
 	this.data = append(this.data, val)
 }
 
-func (this *stack[T]) Pop() {
+func (this *Stack[T]) Pop() {
 	if len(this.data) == 0 {
 		return
 	}
 	this.data = this.data[:len(this.data)-1]
 }
 
-func (this *stack[T]) Top() T {
+func (this *Stack[T]) Top() T {
 	if len(this.data) == 0 {
 		return *new(T)
 	}
@@ -29,6 +29,6 @@ func (this *stack[T]) Top() T {
 	return this.data[len(this.data)-1]
 }
 
-func (this *stack[T]) IsEmpty() bool {
+func (this *Stack[T]) IsEmpty() bool {
 	return len(this.data) == 0
 }

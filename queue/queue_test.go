@@ -7,7 +7,7 @@ import (
 
 func TestNewQueue(t *testing.T) {
 	q := NewQueue[int]()
-	val := new(queue[int])
+	val := new(Queue[int])
 	if reflect.TypeOf(q) != reflect.TypeOf(val) {
 		t.Error("type mismatch: func NewQueue returned wrong type")
 	}

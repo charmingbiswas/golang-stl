@@ -5,30 +5,30 @@ import (
 	"container/list"
 )
 
-type queue[T any] struct {
+type Queue[T any] struct {
 	data *list.List
 }
 
 // Initializes an empty queue.
 // Works with any generic data type.
-func NewQueue[T any]() *queue[T] {
-	return &queue[T]{
+func NewQueue[T any]() *Queue[T] {
+	return &Queue[T]{
 		data: list.New(),
 	}
 }
 
 // Add an element to the front of the queue.
-func (this *queue[T]) PushFront(val T) {
+func (this *Queue[T]) PushFront(val T) {
 	this.data.PushFront(val)
 }
 
 // Add an element to the end of the queue.
-func (this *queue[T]) PushBack(val T) {
+func (this *Queue[T]) PushBack(val T) {
 	this.data.PushBack(val)
 }
 
 // Remove an element from the front of the queue.
-func (this *queue[T]) PopFront() {
+func (this *Queue[T]) PopFront() {
 	if this.data.Len() == 0 {
 		return
 	}
@@ -36,7 +36,7 @@ func (this *queue[T]) PopFront() {
 }
 
 // Remove an element from the back of the queue.
-func (this *queue[T]) PopBack() {
+func (this *Queue[T]) PopBack() {
 	if this.data.Len() == 0 {
 		return
 	}
@@ -44,7 +44,7 @@ func (this *queue[T]) PopBack() {
 }
 
 // Returns the first element in the queue.
-func (this *queue[T]) Front() T {
+func (this *Queue[T]) Front() T {
 	if this.data.Len() == 0 {
 		return *new(T)
 	}
@@ -52,7 +52,7 @@ func (this *queue[T]) Front() T {
 }
 
 // Returns the last element in the queue.
-func (this *queue[T]) Back() T {
+func (this *Queue[T]) Back() T {
 	if this.data.Len() == 0 {
 		return *new(T)
 	}
@@ -61,6 +61,6 @@ func (this *queue[T]) Back() T {
 
 // Checks if the queue is empty.
 // Return boolean.
-func (this *queue[T]) IsEmpty() bool {
+func (this *Queue[T]) IsEmpty() bool {
 	return this.data.Len() == 0
 }
