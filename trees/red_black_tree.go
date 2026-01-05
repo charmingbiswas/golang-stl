@@ -15,34 +15,34 @@ const (
 	BLACK color = "black"
 )
 
-type Node[T cmp.Ordered, V any] struct {
+type redBlackTreeNode[T cmp.Ordered, V any] struct {
 	Key       T
 	Val       V
 	NodeColor color
-	Left      *Node[T, V]
-	Right     *Node[T, V]
-	Parent    *Node[T, V]
+	Left      *redBlackTreeNode[T, V]
+	Right     *redBlackTreeNode[T, V]
+	Parent    *redBlackTreeNode[T, V]
 }
 
-type RbTree[T cmp.Ordered, V any] struct {
-	Root *Node[T, V]
-	NIL  *Node[T, V]
+type redBlackTree[T cmp.Ordered, V any] struct {
+	Root *redBlackTreeNode[T, V]
+	NIL  *redBlackTreeNode[T, V]
 }
 
-func NewRedBlackTree[T cmp.Ordered, V any]() *RbTree[T, V] {
-	nilNode := &Node[T, V]{
+func NewRedBlackTree[T cmp.Ordered, V any]() *redBlackTree[T, V] {
+	nilNode := &redBlackTreeNode[T, V]{
 		NodeColor: BLACK,
 	}
-	return &RbTree[T, V]{
+	return &redBlackTree[T, V]{
 		Root: nilNode,
 		NIL:  nilNode,
 	}
 }
 
-func (t *RbTree[T, V]) Insert(key T, value V) {
+func (t *redBlackTree[T, V]) insert(key T, value V) {
 
 	// create a new node
-	newNode := &Node[T, V]{
+	newNode := &redBlackTreeNode[T, V]{
 		Key:       key,
 		Val:       value,
 		NodeColor: RED,
@@ -81,8 +81,8 @@ func (t *RbTree[T, V]) Insert(key T, value V) {
 	t.insertFixup(newNode)
 }
 
-func (t *RbTree[T, V]) Delete(key T) bool {
-	node := t.search(key)
+func (t *redBlackTree[T, V]) delete(key T) bool {
+	node := t.searchHelper(key)
 
 	if node == t.NIL {
 		return false
@@ -92,8 +92,8 @@ func (t *RbTree[T, V]) Delete(key T) bool {
 	return true
 }
 
-func (t *RbTree[T, V]) Search(key T) (V, bool) {
-	n := t.search(key)
+func (t *redBlackTree[T, V]) search(key T) (V, bool) {
+	n := t.searchHelper(key)
 	if n == t.NIL {
 		return t.NIL.Val, false
 	}
@@ -101,13 +101,11 @@ func (t *RbTree[T, V]) Search(key T) (V, bool) {
 	return n.Val, true
 }
 
-func (t *RbTree[T, V]) IsEmpty() bool {
+func (t *redBlackTree[T, V]) isEmpty() bool {
 	return t.Root == t.NIL
 }
 
-func (t *RbTree[T, V]) PrintInOrder() {}
-
-func (t *RbTree[T, V]) insertFixup(n *Node[T, V]) {
+func (t *redBlackTree[T, V]) insertFixup(n *redBlackTreeNode[T, V]) {
 	// check if inserted node's parent color is RED
 	// meaning newly inserted node is NOT the root node
 	for n.Parent.NodeColor == RED {
@@ -180,12 +178,12 @@ func (t *RbTree[T, V]) insertFixup(n *Node[T, V]) {
 	t.Root.NodeColor = BLACK // ROOT is always black
 }
 
-func (t *RbTree[T, V]) deleteNode(n *Node[T, V]) {
+func (t *redBlackTree[T, V]) deleteNode(n *redBlackTreeNode[T, V]) {
 
 	originalNode := n
 	originalColor := originalNode.NodeColor
 
-	var replacementNode *Node[T, V]
+	var replacementNode *redBlackTreeNode[T, V]
 
 	// There are 3 scenarios which we need to consider
 	// If left child of node to be deleted is NIL
@@ -231,7 +229,7 @@ func (t *RbTree[T, V]) deleteNode(n *Node[T, V]) {
 	}
 }
 
-func (t *RbTree[T, V]) deleteFixup(n *Node[T, V]) {
+func (t *redBlackTree[T, V]) deleteFixup(n *redBlackTreeNode[T, V]) {
 	/*
 		There are 4 types of fixes that we will encounter:
 		We will call sibling of node n as m
@@ -334,7 +332,7 @@ func (t *RbTree[T, V]) deleteFixup(n *Node[T, V]) {
 	n.NodeColor = BLACK // final step
 }
 
-func (t *RbTree[T, V]) leftRotate(n *Node[T, V]) {
+func (t *redBlackTree[T, V]) leftRotate(n *redBlackTreeNode[T, V]) {
 	/*
 			  1
 			 / \
@@ -375,7 +373,7 @@ func (t *RbTree[T, V]) leftRotate(n *Node[T, V]) {
 	x.Parent = y
 }
 
-func (t *RbTree[T, V]) rightRotate(n *Node[T, V]) {
+func (t *redBlackTree[T, V]) rightRotate(n *redBlackTreeNode[T, V]) {
 	// Same logic as left rorate, just flip left child with right child and vice versa
 	x := n
 	y := n.Left
@@ -400,7 +398,7 @@ func (t *RbTree[T, V]) rightRotate(n *Node[T, V]) {
 	x.Parent = y
 }
 
-func (t *RbTree[T, V]) search(key T) *Node[T, V] {
+func (t *redBlackTree[T, V]) searchHelper(key T) *redBlackTreeNode[T, V] {
 	current := t.Root
 	for current != t.NIL {
 		if key == current.Key {
@@ -415,7 +413,7 @@ func (t *RbTree[T, V]) search(key T) *Node[T, V] {
 	return t.NIL
 }
 
-func (t *RbTree[T, V]) transplant(n, m *Node[T, V]) {
+func (t *redBlackTree[T, V]) transplant(n, m *redBlackTreeNode[T, V]) {
 	// We need to deal with three cases
 	// If n is root node
 	// If n is left child of parent
@@ -437,7 +435,7 @@ func (t *RbTree[T, V]) transplant(n, m *Node[T, V]) {
 }
 
 // Returns the minimum key in a sub tree rooted at node n
-func (t *RbTree[T, V]) minimum(n *Node[T, V]) *Node[T, V] {
+func (t *redBlackTree[T, V]) minimum(n *redBlackTreeNode[T, V]) *redBlackTreeNode[T, V] {
 	for n.Left != t.NIL {
 		n = n.Left
 	}
