@@ -153,8 +153,7 @@ func TestNewMinHeap(t *testing.T) {
 }
 
 func TestNewHeapWithFunc(t *testing.T) {
-	t.Run("testing NewHeapWithFunc with custom data type one", func(t *testing.T) {
-		t.Parallel()
+	t.Run("testing NewHeapWithFunc with custom data type", func(t *testing.T) {
 		type mockPair struct {
 			key   int
 			value any
