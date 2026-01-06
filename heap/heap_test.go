@@ -151,3 +151,52 @@ func TestNewMinHeap(t *testing.T) {
 		}
 	})
 }
+
+func TestNewHeapWithFunc(t *testing.T) {
+	t.Run("testing NewHeapWithFunc with custom data type one", func(t *testing.T) {
+		t.Parallel()
+		type mockPair struct {
+			key   int
+			value any
+		}
+
+		comparator := func(a, b mockPair) bool {
+			return a.key < b.key // min heap
+		}
+
+		h := NewHeapWithFunc(comparator)
+
+		mockValues := []mockPair{
+			{key: 1, value: 1},
+			{key: 5, value: 5},
+			{key: 2, value: 2},
+			{key: 9, value: 9},
+			{key: 3, value: 3},
+		}
+
+		for _, val := range mockValues {
+			h.Push(val)
+		}
+
+		result := make([]mockPair, 0)
+
+		for !h.IsEmpty() {
+			result = append(result, h.Top())
+			h.Pop()
+		}
+
+		expectedOutput := []mockPair{
+			{key: 1, value: 1},
+			{key: 2, value: 2},
+			{key: 3, value: 3},
+			{key: 5, value: 5},
+			{key: 9, value: 9},
+		}
+
+		for index := range result {
+			if result[index] != expectedOutput[index] {
+				t.Errorf("heap property failed: want %#v, got %#v", expectedOutput[index], result[index])
+			}
+		}
+	})
+}
