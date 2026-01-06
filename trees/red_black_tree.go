@@ -29,7 +29,7 @@ type redBlackTree[T cmp.Ordered, V any] struct {
 	NIL  *redBlackTreeNode[T, V]
 }
 
-func NewRedBlackTree[T cmp.Ordered, V any]() *redBlackTree[T, V] {
+func newRedBlackTree[T cmp.Ordered, V any]() *redBlackTree[T, V] {
 	nilNode := &redBlackTreeNode[T, V]{
 		NodeColor: BLACK,
 	}
