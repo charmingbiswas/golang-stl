@@ -6,6 +6,7 @@ package trees
 
 import (
 	"cmp"
+	"iter"
 )
 
 type color string
@@ -103,6 +104,39 @@ func (t *redBlackTree[T, V]) search(key T) (V, bool) {
 
 func (t *redBlackTree[T, V]) isEmpty() bool {
 	return t.Root == t.NIL
+}
+
+func (t *redBlackTree[T, V]) iterator() iter.Seq2[T, V] {
+	// We will use Morris Traversal
+	// To prevent unncessary use of stack memory
+	// This will be inorder traversal
+	return func(yield func(T, V) bool) {
+		currentNode := t.Root
+		for currentNode != t.NIL {
+			if currentNode.Left == t.NIL {
+				if !yield(currentNode.Key, currentNode.Val) {
+					return
+				}
+				currentNode = currentNode.Right
+			} else {
+				prevNode := currentNode.Left
+				for prevNode.Right != t.NIL && prevNode.Right != currentNode {
+					prevNode = prevNode.Right
+				}
+
+				if prevNode.Right == t.NIL {
+					prevNode.Right = currentNode
+					currentNode = currentNode.Left
+				} else {
+					prevNode.Right = t.NIL
+					if !yield(currentNode.Key, currentNode.Val) {
+						return
+					}
+					currentNode = currentNode.Right
+				}
+			}
+		}
+	}
 }
 
 func (t *redBlackTree[T, V]) insertFixup(n *redBlackTreeNode[T, V]) {
