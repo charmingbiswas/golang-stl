@@ -4,415 +4,552 @@ package trees
 // For better understanding of theory and algorithm, please refer to this playlist:
 // https://www.youtube.com/playlist?list=PL9xmBV_5YoZNqDI8qfOZgzbqahCUmUEin
 
+/*
+	1. Red black tree is a self balancing binary search tree.
+	2. The root node must be colored black.
+	3. The children of red color node must be colored black. There should not be two consecutive red nodes.
+	4. In all the paths of the tree there should be same number of black color nodes.
+	5. Every new node must be inserted with red color.
+	6. Every leaf( i.e nil node) must be colored black.
+*/
+
 import (
 	"cmp"
+	"fmt"
 	"iter"
 )
 
-type color string
+type Color string
 
 const (
-	RED   color = "red"
-	BLACK color = "black"
+	RED   Color = "red"
+	BLACK Color = "black"
 )
 
-type redBlackTreeNode[T cmp.Ordered, V any] struct {
+type RedBlackTreeNode[T cmp.Ordered, V any] struct {
 	Key       T
-	Val       V
-	NodeColor color
-	Left      *redBlackTreeNode[T, V]
-	Right     *redBlackTreeNode[T, V]
-	Parent    *redBlackTreeNode[T, V]
+	Value     V
+	NodeColor Color
+	Left      *RedBlackTreeNode[T, V]
+	Right     *RedBlackTreeNode[T, V]
+	Parent    *RedBlackTreeNode[T, V]
 }
 
-type redBlackTree[T cmp.Ordered, V any] struct {
-	Root *redBlackTreeNode[T, V]
-	NIL  *redBlackTreeNode[T, V]
+type RedBlackTree[T cmp.Ordered, V any] struct {
+	Root     *RedBlackTreeNode[T, V]
+	NIL      *RedBlackTreeNode[T, V]
+	TreeSize int
 }
 
-func newRedBlackTree[T cmp.Ordered, V any]() *redBlackTree[T, V] {
-	nilNode := &redBlackTreeNode[T, V]{
+// Returns a pointer to an instance of a RedBlackTree struct.
+func NewRedBlackTree[T cmp.Ordered, V any]() *RedBlackTree[T, V] {
+	nilNode := &RedBlackTreeNode[T, V]{
 		NodeColor: BLACK,
 	}
-	return &redBlackTree[T, V]{
-		Root: nilNode,
-		NIL:  nilNode,
+
+	return &RedBlackTree[T, V]{
+		Root:     nilNode,
+		NIL:      nilNode,
+		TreeSize: 0,
 	}
 }
 
-func (t *redBlackTree[T, V]) insert(key T, value V) {
-
-	// create a new node
-	newNode := &redBlackTreeNode[T, V]{
-		Key:       key,
-		Val:       value,
+// Inserts a key-value pair into the RedBlackTree.
+// The key has to be of type cmp.Ordered, value can be anything.
+func (t *RedBlackTree[T, V]) Insert(key T, value V) {
+	newNode := &RedBlackTreeNode[T, V]{
 		NodeColor: RED,
+		Key:       key,
+		Value:     value,
 		Left:      t.NIL,
 		Right:     t.NIL,
 		Parent:    t.NIL,
 	}
 
-	parent := t.NIL
-
-	// start from root and keep traversing the tree until you find the correct spot for insertion
 	currentNode := t.Root
+	parentNode := t.NIL
 
+	// Traverse tree
 	for currentNode != t.NIL {
-		parent = currentNode
+		/*
+			NIL (parentNode)
+			 |
+			Root (currentNode)
+		*/
+		parentNode = currentNode
+
+		/*
+			NIL
+			 |
+			Root (parent)
+			 |
+			(currentNode) Traverse tree using this node
+		*/
 		if newNode.Key < currentNode.Key {
 			currentNode = currentNode.Left
 		} else if newNode.Key > currentNode.Key {
 			currentNode = currentNode.Right
-		} else if newNode.Key == currentNode.Key {
-			currentNode.Val = value
+		} else {
+			// if exact key is found
+			// update the value and return, nothing left to do
+			currentNode.Value = value
 			return
 		}
 	}
 
-	newNode.Parent = parent
+	// now need to position the parent node pointer to correct parent
+	// this case will happen when exact key is not found
+	// so need to insert the newNode somewhere at the correct position
+	newNode.Parent = parentNode // this case, parentNode is t.Nil if tree is empty
 
-	if parent == t.NIL {
+	if parentNode == t.NIL {
+		// is parent is nil, insert new node at root
 		t.Root = newNode
-	} else if newNode.Key < parent.Key {
-		parent.Left = newNode
-	} else if newNode.Key > parent.Key {
-		parent.Right = newNode
+	} else if newNode.Key < parentNode.Key {
+		parentNode.Left = newNode
+	} else if newNode.Key > parentNode.Key {
+		parentNode.Right = newNode
 	}
 
+	// after insertion, call insert fixup helper to maintain red black tree properties
 	t.insertFixup(newNode)
+	t.TreeSize++
 }
 
-func (t *redBlackTree[T, V]) delete(key T) bool {
-	node := t.searchHelper(key)
+// Deletes a key from the tree.
+// Key has to be of type cmp.Ordered
+// If key does not exist, returns false, otherwise true if deletion is successful.
+func (t *RedBlackTree[T, V]) Delete(key T) bool {
+	/*
+		For deletion we need to consider these cases
+		1. Left child of node to be deleted is NIL
+		2. Right child of node to be delete is NIL
+		3. Neither are NIL
 
-	if node == t.NIL {
-		return false
+		IMPORTANT:
+		If we deleted a node with original color as RED, NO FIXUP is needed.
+		Since deleting a red node does not reduce the number of black nodes on any path
+		Fixup is called ONLY for deleting node which have BLACK color
+	*/
+
+	nodeToBeDeleted, ok := t.Search(key)
+	if !ok {
+		return false // node with given key does not exist on the tree
 	}
 
-	t.deleteNode(node)
+	originalNode := nodeToBeDeleted
+	originalNodeColor := nodeToBeDeleted.NodeColor
+	var replacementNode *RedBlackTreeNode[T, V]
+
+	if originalNode.Left == t.NIL {
+		// if left child is NIL, transplant this node with it's right child
+		replacementNode = originalNode.Right
+		t.transplant(originalNode, originalNode.Right)
+	} else if originalNode.Right == t.NIL {
+		replacementNode = originalNode.Left
+		t.transplant(originalNode, originalNode.Left)
+	} else {
+		// if neither children are NIL
+		// find inorder successor, i.e the smallest node in the right subtree
+		successor := t.minimum(originalNode.Right)
+		originalNode = successor
+		originalNodeColor = successor.NodeColor
+		replacementNode = successor.Right
+
+		/*
+			Tree would be looking like this (we are trying to delete 12)
+				12
+			   /   \
+			  8    15
+			 / \   / \
+			1  9  13 23
+			    \  \
+				10 NIL
+
+			successor node is 13, replacements node becomes successor.Right = t.NIL
+			After transplant, this is the new tree
+
+			    12  (13)(successor, floating around)
+			   /   \
+			  8    15
+			 / \   / \
+			1  9  NIL  23
+			    \
+				10
+		*/
+
+		if successor.Parent == nodeToBeDeleted {
+			replacementNode.Parent = successor
+		} else {
+			t.transplant(successor, successor.Right) // transplant successor with it's right child, which would be NIL child
+			successor.Right = nodeToBeDeleted.Right
+			successor.Right.Parent = successor
+		}
+
+		// now transplant successor with nodeToBeDeleted and change the pointers around
+		t.transplant(nodeToBeDeleted, successor)
+		successor.Left = nodeToBeDeleted.Left
+		successor.Left.Parent = successor
+		successor.NodeColor = nodeToBeDeleted.NodeColor // keep the color same
+	}
+
+	if originalNodeColor == BLACK {
+		// fixup is only needed when deleting a black node, if you delete a red node the number of black nodes per path does not change
+		// hence no fixup needed for RED node deletions
+		t.deleteFixup(replacementNode)
+	}
+	t.TreeSize--
 	return true
 }
 
-func (t *redBlackTree[T, V]) search(key T) (V, bool) {
-	n := t.searchHelper(key)
-	if n == t.NIL {
-		return t.NIL.Val, false
+// Searches for a key in the tree.
+// Key has to be of type cmp.Ordered
+// Returns the node and boolean value.
+// Boolean is true if key is found, otherwise false.
+func (t *RedBlackTree[T, V]) Search(key T) (*RedBlackTreeNode[T, V], bool) {
+	currentNode := t.Root
+
+	for currentNode != t.NIL {
+		if currentNode.Key == key {
+			return currentNode, true
+		} else if key < currentNode.Key {
+			currentNode = currentNode.Left
+		} else {
+			currentNode = currentNode.Right
+		}
 	}
 
-	return n.Val, true
+	return t.NIL, false
 }
 
-func (t *redBlackTree[T, V]) isEmpty() bool {
+// Returns true if tree is empty, otherwise false.
+func (t *RedBlackTree[T, V]) IsEmpty() bool {
 	return t.Root == t.NIL
 }
 
-func (t *redBlackTree[T, V]) iterator() iter.Seq2[T, V] {
-	// We will use Morris Traversal
-	// To prevent unncessary use of stack memory
-	// This will be inorder traversal
-	return func(yield func(T, V) bool) {
-		currentNode := t.Root
-		for currentNode != t.NIL {
-			if currentNode.Left == t.NIL {
-				if !yield(currentNode.Key, currentNode.Val) {
-					return
-				}
-				currentNode = currentNode.Right
-			} else {
-				prevNode := currentNode.Left
-				for prevNode.Right != t.NIL && prevNode.Right != currentNode {
-					prevNode = prevNode.Right
-				}
-
-				if prevNode.Right == t.NIL {
-					prevNode.Right = currentNode
-					currentNode = currentNode.Left
-				} else {
-					prevNode.Right = t.NIL
-					if !yield(currentNode.Key, currentNode.Val) {
-						return
-					}
-					currentNode = currentNode.Right
-				}
-			}
-		}
-	}
-}
-
-func (t *redBlackTree[T, V]) insertFixup(n *redBlackTreeNode[T, V]) {
-	// check if inserted node's parent color is RED
-	// meaning newly inserted node is NOT the root node
-	for n.Parent.NodeColor == RED {
-		// if parent of inserted node is left child of grandparent
-		if n.Parent == n.Parent.Parent.Left {
-			uncle := n.Parent.Parent.Right
-			if uncle.NodeColor == RED {
-				// Case 1: Uncle is red
-				// Change uncle to black, parent to black and grandparent to red
-				n.Parent.NodeColor = BLACK
-				uncle.NodeColor = BLACK
-				n.Parent.Parent.NodeColor = RED
-				n = n.Parent.Parent
-			} else {
-				if n == n.Parent.Right {
-					// Case 2: Uncle is black and node is right child
-					// Meaning: Triangle is being formed because node is right child but node's parent is left child
-					// Rotate in OPPOSITE direction of node at the parent node
-					// In this case, since node is right child, rotate left at the parent
-					/*
-							Only for understanding and reference, not ideal example
-							 5
-							/ \
-						   3   9
-							\
-							 4
-					*/
-					n = n.Parent
-					t.leftRotate(n)
-				}
-				// Case 3: Uncle is black and node is left child
-				// Meaning: Straing line is being formed because node is left child and parent is also left child
-				// Rotate in opposite direction of node at the parent node
-				// In this case, since node is left child, rotate right at the parent
-				// And re-color parent to Black and grandparent to Red to preserve Red Black Tree property
-				// Re-coloring needs to be done in both cases, hence added outside the if condition
-				/*
-						Only for understanding and reference, not ideal example
-						  5
-						 / \
-					    3   9
-					   /
-					  4
-				*/
-				n.Parent.NodeColor = BLACK
-				n.Parent.Parent.NodeColor = RED
-				t.rightRotate(n.Parent.Parent)
-			}
-		} else { // if parent of inserted node is right child of grandparent
-			uncle := n.Parent.Parent.Left
-			if uncle.NodeColor == RED {
-				// Case 1: Uncle is red
-				n.Parent.NodeColor = BLACK
-				uncle.NodeColor = BLACK
-				n.Parent.Parent.NodeColor = RED
-				n = n.Parent.Parent
-			} else {
-				if n == n.Parent.Left {
-					// Case 2: Uncle is black and node is left child
-					n = n.Parent
-					t.rightRotate(n)
-				}
-				// Case 3: Uncle is black and node is right child
-				n.Parent.NodeColor = BLACK
-				n.Parent.Parent.NodeColor = RED
-				t.leftRotate(n.Parent.Parent)
-			}
-		}
-	}
-	t.Root.NodeColor = BLACK // ROOT is always black
-}
-
-func (t *redBlackTree[T, V]) deleteNode(n *redBlackTreeNode[T, V]) {
-
-	originalNode := n
-	originalColor := originalNode.NodeColor
-
-	var replacementNode *redBlackTreeNode[T, V]
-
-	// There are 3 scenarios which we need to consider
-	// If left child of node to be deleted is NIL
-	// If right child of node to be deleted is NIL
-	// If neither is the case and both children exist
-
-	if n.Left == t.NIL {
-		// Case 1: NIL left child
-		// Transplant node n with it's RIGHT child
-		replacementNode = n.Right
-		t.transplant(n, n.Right)
-	} else if n.Right == t.NIL {
-		// Case 2: NIL right child
-		// Transplant node n with it's LEFT child
-		replacementNode = n.Left
-		t.transplant(n, n.Left)
-	} else {
-		// Case 3: Neither children are NIL
-		// Now since both chilren exist, we need to first find the minimum in the RIGHT sub tree
-
-		successorNode := t.minimum(n.Right)
-		originalNode = successorNode
-		originalColor = successorNode.NodeColor
-		replacementNode = successorNode.Right
-
-		if successorNode.Parent == n {
-			replacementNode.Parent = successorNode
+// Prints the key value pairs in the tree.
+// The ordering is 'InOrder' sorted ordering.
+func (t *RedBlackTree[T, V]) PrintTree() {
+	// Using Morris Traversal to preserve memory space
+	currentNode := t.Root
+	for currentNode != t.NIL {
+		// check if left child exists
+		if currentNode.Left == t.NIL {
+			// No left child, print current node value.
+			// Move on to right child.
+			fmt.Printf("KEY: %v, VALUE: %v, NODE COLOR: %v\n", currentNode.Key, currentNode.Value, currentNode.NodeColor)
+			currentNode = currentNode.Right
 		} else {
-			t.transplant(successorNode, successorNode.Right)
-			successorNode.Right = n.Right
-			successorNode.Right.Parent = successorNode
+			// left child exists
+			// find inorder predecessor
+			// meaning right most child of left child
+			predecessor := currentNode.Left
+			for predecessor.Right != t.NIL && predecessor.Right != currentNode {
+				predecessor = predecessor.Right
+			}
+
+			switch predecessor.Right {
+			case t.NIL:
+				predecessor.Right = currentNode
+				currentNode = currentNode.Left
+			case currentNode:
+				predecessor.Right = t.NIL
+				fmt.Printf("KEY: %v, VALUE: %v, NODE COLOR: %v\n", currentNode.Key, currentNode.Value, currentNode.NodeColor)
+				currentNode = currentNode.Right
+			}
 		}
-
-		t.transplant(n, successorNode)
-		successorNode.Left = n.Left
-		successorNode.Left.Parent = successorNode
-		successorNode.NodeColor = n.NodeColor
-
-	}
-
-	if originalColor == BLACK {
-		t.deleteFixup(replacementNode)
 	}
 }
 
-func (t *redBlackTree[T, V]) deleteFixup(n *redBlackTreeNode[T, V]) {
+// Returns an iterator to the tree.
+// Works with 'for range' expression.
+// Returns key-value pair per iteration in 'InOrder' sorted ordering.
+func (t *RedBlackTree[T, V]) Iterator() iter.Seq2[T, V] {
+	type Pair struct {
+		key   T
+		value V
+	}
+
+	result := make([]Pair, 0)
+
+	// Use Morris Traversal for space efficient traversal
+	currentNode := t.Root
+	for currentNode != t.NIL {
+		if currentNode.Left == t.NIL {
+			result = append(result, Pair{key: currentNode.Key, value: currentNode.Value})
+			currentNode = currentNode.Right
+		} else {
+			inOrderPredecessor := currentNode.Left
+			for inOrderPredecessor.Right != t.NIL && inOrderPredecessor.Right != currentNode {
+				inOrderPredecessor = inOrderPredecessor.Right
+			}
+
+			switch inOrderPredecessor.Right {
+			case t.NIL:
+				inOrderPredecessor.Right = currentNode
+				currentNode = currentNode.Left
+			case currentNode:
+				inOrderPredecessor.Right = t.NIL
+				result = append(result, Pair{key: currentNode.Key, value: currentNode.Value})
+				currentNode = currentNode.Right
+			}
+		}
+	}
+
+	return func(yield func(T, V) bool) {
+		for _, pair := range result {
+			if !yield(pair.key, pair.value) {
+				return
+			}
+		}
+	}
+}
+
+func (t *RedBlackTree[T, V]) Size() int {
+	return t.TreeSize
+}
+
+func (t *RedBlackTree[T, V]) insertFixup(node *RedBlackTreeNode[T, V]) {
+	// 1. Check if newly inserted node's parent color is RED
+	// if not, then new node is the root node
+	for node.Parent.NodeColor == RED {
+		// if parent of inserted node is left child of it's grandparent
+		/*
+					ROOT
+					|
+				GRANDPARENT
+				/    	   \
+			  PARENT	   UNCLE
+			  /
+			INSERTED NODE
+		*/
+		if node.Parent == node.Parent.Parent.Left {
+			uncle := node.Parent.Parent.Right
+			/*
+				1. Case One: uncle is RED
+				-> Change color of uncle and parent to BLACK and grandparent to RED
+				-> Move pointer from current node to grandparent of current node
+			*/
+			if uncle.NodeColor == RED {
+				uncle.NodeColor = BLACK
+				node.Parent.NodeColor = BLACK
+				node.Parent.Parent.NodeColor = RED
+				node = node.Parent.Parent
+			} else {
+				/*
+					2. Case Two: uncle is black and current node is RIGHT child of parent // triangle is formed between inserted node, parent and grandparent
+								ROOT
+								|
+							GRANDPARENT
+					(triangle)/    	   \
+						PARENT	      UNCLE
+							\
+							INSERTED NODE
+					-> Rotate on parent in the OPPOSITE direction of the current node.
+					-> change color of parent to BLACK and grand parent to RED
+					-> color change is needed in both case 2 and 3, hence done outside the if condition
+				*/
+				if node == node.Parent.Right {
+					node = node.Parent // this is done, because after rotation, the parent will become the leaf node
+					t.rotateLeft(node) // rorate on the parent for triangle
+				}
+
+				/*
+						3. Case Three: uncle is black and current node is RIGHT child of parent // straight line is formed
+									  ROOT
+										|
+									GRANDPARENT
+					(straigth line)/    	   \
+								PARENT	      UNCLE
+								/
+								INSERTED NODE
+						-> rotate in opposite direction on the 'grandparent' node
+						-> change color of parent to black and grandparent to red
+				*/
+				node.Parent.NodeColor = BLACK
+				node.Parent.Parent.NodeColor = RED
+				t.rotateRight(node.Parent.Parent) // rotate on the grandparent for straight line
+			}
+		} else {
+			// inserted node's parent if the RIGHT child of grandparent
+			/*
+						ROOT
+						|
+					GRANDPARENT
+					/    	   \
+				  UNCLE	      PARENT
+				  				\
+							INSERTED NODE
+			*/
+			// Again check the same conditions as before
+			uncle := node.Parent.Parent.Left
+
+			if uncle.NodeColor == RED {
+				uncle.NodeColor = BLACK
+				node.Parent.NodeColor = BLACK
+				node.Parent.Parent.NodeColor = RED
+				node = node.Parent.Parent
+			} else {
+				if node == node.Parent.Left {
+					node = node.Parent
+					t.rotateRight(node)
+				}
+
+				node.Parent.NodeColor = BLACK
+				node.Parent.Parent.NodeColor = RED
+				t.rotateLeft(node.Parent.Parent)
+			}
+		}
+	}
+
+	t.Root.NodeColor = BLACK // root is always black
+}
+
+func (t *RedBlackTree[T, V]) deleteFixup(node *RedBlackTreeNode[T, V]) {
 	/*
-		There are 4 types of fixes that we will encounter:
-		We will call sibling of node n as m
-		1. When m is RED
-		2. When m is BLACK and both it's children are BLACK
-		3. When m is BLACK and it's right child is BLACK but left child is RED
-		4. When m is BLACK and it's right is RED but left child is BLACK
-		// There conditions are not mutually exclusive and we need to call multiple fix ups to maintain RED BLACK TREE behavior
+		Fixes red black tree violations after deletion has taken place
+		We need to understand certain cases
+		sibling = sibling of the node on which delete fixup is being performed
+
+		Case 1: sibling is RED
+		Case 2: sibling is BLACK and both it's children are BLACK
+		Case 3: sibling is BLACK and left child is RED but right child is BLACK
+		Case 4: sibling is BLACK and right child is RED
+
+		These cases are not exclusive and there can be multiple violations being fixed in the same function call
 	*/
 
-	// We use a for loop since there can be multiple fix ups needed as long as RED BLACK TREE condition is not satified
-
-	for n != t.NIL && n.NodeColor == BLACK {
-		if n == n.Parent.Left {
-			sibling := n.Parent.Right // sibling will be right child since node n is left child
-
-			// CASE 1
+	for node != t.Root && node.NodeColor == BLACK {
+		// if fixup node is the left child of it's parent
+		switch node {
+		case node.Parent.Left:
+			sibling := node.Parent.Right
+			// Case 1: sibling is RED
 			if sibling.NodeColor == RED {
-				// 1. Color sibling BLACK
-				// 2. Color parent RED
-				// 3. LEFT rotate on parent
-				// 4. Change pointer back to new sibling of node n
-
 				sibling.NodeColor = BLACK
-				n.Parent.NodeColor = RED
-				t.leftRotate(n.Parent)
-				sibling = n.Parent.Right
+				node.Parent.NodeColor = RED
+				t.rotateLeft(node.Parent)
+				sibling = node.Parent.Right // sibling will change after rotation, set it back to node's sibling after rotation
 			}
 
-			// CASE 2
+			// Case 2: sibling is BLACK
 			if sibling.Left.NodeColor == BLACK && sibling.Right.NodeColor == BLACK {
-				// 1. Change sibling color to RED
-				// 2. Move pointer to parent
 				sibling.NodeColor = RED
-				n = n.Parent
+				node = node.Parent // move current pointer from node, to node's parent
 			} else {
-				// CASE 3
+				// Case 3: sibling right child is black and left is red
 				if sibling.Right.NodeColor == BLACK {
-					// 1. Change left child of sibling to black
-					// 2. Change sibling to RED
-					// 3. Do RIGHT rotation since sibling is right child
-					// 4. Change pointer back to new sibling after the rotation
-
 					sibling.Left.NodeColor = BLACK
 					sibling.NodeColor = RED
-					t.rightRotate(sibling)
-					sibling = n.Parent.Right
+					t.rotateRight(sibling)
+					sibling = node.Parent.Right // reset sibling pointer after rotation to correct position
 				}
 
-				// CASE 4
-				// 1. Set sibling color to color of node n's parent
-				// 2. Set node n's parent color to BLACK
-				// 3. Set right child of sibling to BLACK
-				// 4. Left rotate on node n's parent
-				// 5. Set node pointer to root of the tree
-
-				sibling.NodeColor = n.Parent.NodeColor
-				n.Parent.NodeColor = BLACK
+				// Case 4: sibling right child is RED
+				sibling.NodeColor = node.Parent.NodeColor
+				node.Parent.NodeColor = BLACK
 				sibling.Right.NodeColor = BLACK
-				t.leftRotate(n.Parent)
-				n = t.Root
+				t.rotateLeft(node.Parent)
+				node = t.Root
 			}
-		} else {
-			// same logic, just reverse the directions of rotations
-			sibling := n.Parent.Left // sibling will be right child since node n is left child
 
-			// CASE 1
+		case node.Parent.Right:
+			// fixup node is the right child of parent
+			sibling := node.Parent.Left
+			// Case 1:
 			if sibling.NodeColor == RED {
-
 				sibling.NodeColor = BLACK
-				n.Parent.NodeColor = RED
-				t.rightRotate(n.Parent)
-				sibling = n.Parent.Left
+				node.Parent.NodeColor = RED
+				t.rotateRight(node.Parent)
+				sibling = node.Parent.Left
 			}
 
-			// CASE 2
-			if sibling.Right.NodeColor == BLACK && sibling.Left.NodeColor == BLACK {
+			// Case 2:
+			if sibling.Left.NodeColor == BLACK && sibling.Right.NodeColor == BLACK {
 				sibling.NodeColor = RED
-				n = n.Parent
+				node = node.Parent
 			} else {
-				// CASE 3
+				// Case 3:
 				if sibling.Left.NodeColor == BLACK {
-
 					sibling.Right.NodeColor = BLACK
 					sibling.NodeColor = RED
-					t.leftRotate(sibling)
-					sibling = n.Parent.Left
+					t.rotateLeft(sibling)
+					sibling = node.Parent.Left
 				}
 
-				// CASE 4
-				sibling.NodeColor = n.Parent.NodeColor
-				n.Parent.NodeColor = BLACK
+				// Case 4:
+				sibling.NodeColor = node.Parent.NodeColor
+				node.Parent.NodeColor = BLACK
 				sibling.Left.NodeColor = BLACK
-				t.rightRotate(n.Parent)
-				n = t.Root
+				t.rotateRight(node.Parent)
+				node = t.Root
 			}
 		}
 	}
 
-	n.NodeColor = BLACK // final step
+	node.NodeColor = BLACK
 }
 
-func (t *redBlackTree[T, V]) leftRotate(n *redBlackTreeNode[T, V]) {
+func (t *RedBlackTree[T, V]) rotateLeft(node *RedBlackTreeNode[T, V]) {
 	/*
-			  1
-			 / \
-			3   4
-		       / \
-			  2   5
-
-			We are rotating around 4.
-			After rotate left, the structure would be like so
-
-			    4
-			   /  \
-			  1    5
-			 / \
-			3   2
+				  ROOT
+					|
+				GRANDPARENT
+		(triangle)/    	   \
+			PARENT	      UNCLE
+				\
+				INSERTED NODE(x)
+				            \
+							(y)
 	*/
+	x := node
+	y := node.Right
 
-	x := n       // 1
-	y := n.Right // 4
-
-	x.Right = y.Left // NIL in this case
+	// Put y's left subtree into x's right subtree
+	x.Right = y.Left
 
 	if y.Left != t.NIL {
 		y.Left.Parent = x
 	}
-
 	y.Parent = x.Parent
 
 	if x.Parent == t.NIL {
+		// meaning x is root node
+		// so make y the new root
 		t.Root = y
-	} else if x == x.Parent.Left {
-		x.Parent.Left = y
 	} else {
-		x.Parent.Right = y
+		switch x {
+		case x.Parent.Left:
+			// x was the left child
+			// put y there
+			x.Parent.Left = y
+		case x.Parent.Right:
+			x.Parent.Right = y
+		}
 	}
 
+	// put x on y's left
 	y.Left = x
 	x.Parent = y
 }
 
-func (t *redBlackTree[T, V]) rightRotate(n *redBlackTreeNode[T, V]) {
-	// Same logic as left rorate, just flip left child with right child and vice versa
-	x := n
-	y := n.Left
+func (t *RedBlackTree[T, V]) rotateRight(node *RedBlackTreeNode[T, V]) {
+	/*
+				  ROOT
+					|
+				GRANDPARENT
+		(straight)/    	   \
+			PARENT	      UNCLE
+			/
+		INSERTED NODE(x)
+		  /
+		(y)
 
-	x.Left = y.Right // NIL in this case
+	*/
+	x := node
+	y := node.Left
+
+	x.Left = y.Right
 
 	if y.Right != t.NIL {
 		y.Right.Parent = x
@@ -422,37 +559,26 @@ func (t *redBlackTree[T, V]) rightRotate(n *redBlackTreeNode[T, V]) {
 
 	if x.Parent == t.NIL {
 		t.Root = y
-	} else if x == x.Parent.Right {
-		x.Parent.Right = y
 	} else {
-		x.Parent.Left = y
+		switch x {
+		case x.Parent.Left:
+			x.Parent.Left = y
+		case x.Parent.Right:
+			x.Parent.Right = y
+		}
 	}
 
 	y.Right = x
 	x.Parent = y
 }
 
-func (t *redBlackTree[T, V]) searchHelper(key T) *redBlackTreeNode[T, V] {
-	current := t.Root
-	for current != t.NIL {
-		if key == current.Key {
-			return current
-		} else if key < current.Key {
-			current = current.Left
-		} else {
-			current = current.Right
-		}
-	}
-
-	return t.NIL
-}
-
-func (t *redBlackTree[T, V]) transplant(n, m *redBlackTreeNode[T, V]) {
+func (t *RedBlackTree[T, V]) transplant(n, m *RedBlackTreeNode[T, V]) {
 	// We need to deal with three cases
 	// If n is root node
 	// If n is left child of parent
 	// If n is right child of parent
 
+	// 1. n is root node
 	if n.Parent == t.NIL {
 		// meaning n is root node, there is no parent
 		// just make m as the new root
@@ -465,13 +591,13 @@ func (t *redBlackTree[T, V]) transplant(n, m *redBlackTreeNode[T, V]) {
 		n.Parent.Right = m
 	}
 
+	// take n's parent and give it to m
 	m.Parent = n.Parent
 }
 
-// Returns the minimum key in a sub tree rooted at node n
-func (t *redBlackTree[T, V]) minimum(n *redBlackTreeNode[T, V]) *redBlackTreeNode[T, V] {
-	for n.Left != t.NIL {
-		n = n.Left
+func (t *RedBlackTree[T, V]) minimum(node *RedBlackTreeNode[T, V]) *RedBlackTreeNode[T, V] {
+	for node.Left != t.NIL {
+		node = node.Left
 	}
-	return n
+	return node
 }

@@ -40,6 +40,7 @@ func merge[T cmp.Ordered](array []T, low int, mid int, high int) {
 }
 
 // Sorts an array of elements in ascending order.
+// Uses the 'Merge Sort' recursive algorithm.
 func MergeSort[T cmp.Ordered](array []T, low int, high int) {
 	if low < high {
 		mid := low + (high-low)/2
