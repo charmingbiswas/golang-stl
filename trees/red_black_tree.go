@@ -38,7 +38,7 @@ type RedBlackTreeNode[T cmp.Ordered, V any] struct {
 type RedBlackTree[T cmp.Ordered, V any] struct {
 	Root     *RedBlackTreeNode[T, V]
 	NIL      *RedBlackTreeNode[T, V]
-	TreeSize int
+	treeSize int
 }
 
 // Returns a pointer to an instance of a RedBlackTree struct.
@@ -50,7 +50,7 @@ func NewRedBlackTree[T cmp.Ordered, V any]() *RedBlackTree[T, V] {
 	return &RedBlackTree[T, V]{
 		Root:     nilNode,
 		NIL:      nilNode,
-		TreeSize: 0,
+		treeSize: 0,
 	}
 }
 
@@ -113,7 +113,7 @@ func (t *RedBlackTree[T, V]) Insert(key T, value V) {
 
 	// after insertion, call insert fixup helper to maintain red black tree properties
 	t.insertFixup(newNode)
-	t.TreeSize++
+	t.treeSize++
 }
 
 // Deletes a key from the tree.
@@ -198,7 +198,7 @@ func (t *RedBlackTree[T, V]) Delete(key T) bool {
 		// hence no fixup needed for RED node deletions
 		t.deleteFixup(replacementNode)
 	}
-	t.TreeSize--
+	t.treeSize--
 	return true
 }
 
@@ -261,16 +261,17 @@ func (t *RedBlackTree[T, V]) PrintTree() {
 	}
 }
 
-// Returns an iterator to the tree.
+// Returns a 'push' iterator to the tree.
 // Works with 'for range' expression.
 // Returns key-value pair per iteration in 'InOrder' sorted ordering.
-func (t *RedBlackTree[T, V]) Iterator() iter.Seq2[T, V] {
+// Values are returned starting from the first index.
+func (t *RedBlackTree[T, V]) ForwardIterator() iter.Seq2[T, V] {
 	type Pair struct {
 		key   T
 		value V
 	}
 
-	result := make([]Pair, 0)
+	result := make([]Pair, 0, t.treeSize)
 
 	// Use Morris Traversal for space efficient traversal
 	currentNode := t.Root
@@ -305,8 +306,75 @@ func (t *RedBlackTree[T, V]) Iterator() iter.Seq2[T, V] {
 	}
 }
 
+// Returns a 'push' iterator to the tree.
+// Works with 'for range' expression.
+// Returns key-value pair per iteration in 'InOrder' sorted ordering.
+// Values are returned from the starting from the last index.
+func (t *RedBlackTree[T, V]) BackwardIterator() iter.Seq2[T, V] {
+	type Pair struct {
+		key   T
+		value V
+	}
+
+	result := make([]Pair, 0, t.treeSize)
+
+	// Use Morris Traversal for space efficient traversal
+	currentNode := t.Root
+	for currentNode != t.NIL {
+		if currentNode.Left == t.NIL {
+			result = append(result, Pair{key: currentNode.Key, value: currentNode.Value})
+			currentNode = currentNode.Right
+		} else {
+			inOrderPredecessor := currentNode.Left
+			for inOrderPredecessor.Right != t.NIL && inOrderPredecessor.Right != currentNode {
+				inOrderPredecessor = inOrderPredecessor.Right
+			}
+
+			switch inOrderPredecessor.Right {
+			case t.NIL:
+				inOrderPredecessor.Right = currentNode
+				currentNode = currentNode.Left
+			case currentNode:
+				inOrderPredecessor.Right = t.NIL
+				result = append(result, Pair{key: currentNode.Key, value: currentNode.Value})
+				currentNode = currentNode.Right
+			}
+		}
+	}
+
+	return func(yield func(T, V) bool) {
+		for i := len(result) - 1; i >= 0; i-- {
+			if !yield(result[i].key, result[i].value) {
+				return
+			}
+		}
+	}
+}
+
+// Retuns a 'pull' iterator to the tree.
+// Iterator starts from the beginning of the tree.
+// Not intended to be used with 'for range' expression.
+// To be used for manually fetching the next element.
+func (t *RedBlackTree[T, V]) Begin() (next func() (key T, value V, ok bool), stop func()) {
+	return iter.Pull2(t.ForwardIterator())
+}
+
+// Retuns a 'pull' iterator to the tree.
+// Iterator starts from the end of the tree.
+// Not intended to be used with 'for range' expression.
+// To be used for manually fetching the next element.
+func (t *RedBlackTree[T, V]) End() (next func() (key T, value V, ok bool), stop func()) {
+	return iter.Pull2(t.BackwardIterator())
+}
+
+// Returns the current number of nodes in the tree.
 func (t *RedBlackTree[T, V]) Size() int {
-	return t.TreeSize
+	return t.treeSize
+}
+
+// Clears and resets the tree to an empty tree.
+func (t *RedBlackTree[T, V]) Clear() {
+	t.Root = t.NIL
 }
 
 func (t *RedBlackTree[T, V]) insertFixup(node *RedBlackTreeNode[T, V]) {

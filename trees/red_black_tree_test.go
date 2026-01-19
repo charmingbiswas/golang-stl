@@ -62,8 +62,8 @@ func TestNewRedBlackTree(t *testing.T) {
 		t.Error("NIL node should be black")
 	}
 
-	if tree.TreeSize != 0 {
-		t.Errorf("New tree size should be 0, got %d", tree.TreeSize)
+	if tree.Size() != 0 {
+		t.Errorf("New tree size should be 0, got %d", tree.Size())
 	}
 
 	if !tree.IsEmpty() {
@@ -326,7 +326,7 @@ func TestIterator(t *testing.T) {
 	// Verify iterator returns values in sorted order
 	lastKey := 0
 	count := 0
-	for key, value := range tree.Iterator() {
+	for key, value := range tree.ForwardIterator() {
 		if key <= lastKey && count > 0 {
 			t.Error("Iterator should return keys in sorted order")
 		}
@@ -346,7 +346,7 @@ func TestIteratorEmpty(t *testing.T) {
 	tree := NewRedBlackTree[int, string]()
 
 	count := 0
-	for range tree.Iterator() {
+	for range tree.ForwardIterator() {
 		count++
 	}
 
