@@ -310,36 +310,71 @@ func TestDeleteAll(t *testing.T) {
 }
 
 func TestIterator(t *testing.T) {
-	tree := NewRedBlackTree[int, string]()
-	expected := map[int]string{
-		1: "one",
-		2: "two",
-		3: "three",
-		4: "four",
-		5: "five",
-	}
-
-	for k, v := range expected {
-		tree.Insert(k, v)
-	}
-
-	// Verify iterator returns values in sorted order
-	lastKey := 0
-	count := 0
-	for key, value := range tree.ForwardIterator() {
-		if key <= lastKey && count > 0 {
-			t.Error("Iterator should return keys in sorted order")
+	t.Run("test forward iterator", func(t *testing.T) {
+		tree := NewRedBlackTree[int, string]()
+		expected := map[int]string{
+			1: "one",
+			2: "two",
+			3: "three",
+			4: "four",
+			5: "five",
 		}
-		if expected[key] != value {
-			t.Errorf("Expected value %s for key %d, got %s", expected[key], key, value)
-		}
-		lastKey = key
-		count++
-	}
 
-	if count != len(expected) {
-		t.Errorf("Expected %d iterations, got %d", len(expected), count)
-	}
+		for k, v := range expected {
+			tree.Insert(k, v)
+		}
+
+		// Verify iterator returns values in sorted order
+		lastKey := 0
+		count := 0
+		for key, value := range tree.ForwardIterator() {
+			if key <= lastKey && count > 0 {
+				t.Error("Iterator should return keys in sorted order")
+			}
+			if expected[key] != value {
+				t.Errorf("Expected value %s for key %d, got %s", expected[key], key, value)
+			}
+			lastKey = key
+			count++
+		}
+
+		if count != len(expected) {
+			t.Errorf("Expected %d iterations, got %d", len(expected), count)
+		}
+	})
+
+	t.Run("test backward iterator", func(t *testing.T) {
+		tree := NewRedBlackTree[int, string]()
+		expected := map[int]string{
+			1: "one",
+			2: "two",
+			3: "three",
+			4: "four",
+			5: "five",
+		}
+
+		for k, v := range expected {
+			tree.Insert(k, v)
+		}
+
+		// Verify iterator returns values in sorted order
+		lastKey := 0
+		count := 0
+		for key, value := range tree.BackwardIterator() {
+			if key >= lastKey && count > 0 {
+				t.Error("Iterator should return keys in reverse sorted order")
+			}
+			if expected[key] != value {
+				t.Errorf("Expected value %s for key %d, got %s", expected[key], key, value)
+			}
+			lastKey = key
+			count++
+		}
+
+		if count != len(expected) {
+			t.Errorf("Expected %d iterations, got %d", len(expected), count)
+		}
+	})
 }
 
 func TestIteratorEmpty(t *testing.T) {
