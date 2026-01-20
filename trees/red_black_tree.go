@@ -351,22 +351,6 @@ func (t *RedBlackTree[T, V]) BackwardIterator() iter.Seq2[T, V] {
 	}
 }
 
-// Retuns a 'pull' iterator to the tree.
-// Iterator starts from the beginning of the tree.
-// Not intended to be used with 'for range' expression.
-// To be used for manually fetching the next element.
-func (t *RedBlackTree[T, V]) Begin() (next func() (key T, value V, ok bool), stop func()) {
-	return iter.Pull2(t.ForwardIterator())
-}
-
-// Retuns a 'pull' iterator to the tree.
-// Iterator starts from the end of the tree.
-// Not intended to be used with 'for range' expression.
-// To be used for manually fetching the next element.
-func (t *RedBlackTree[T, V]) End() (next func() (key T, value V, ok bool), stop func()) {
-	return iter.Pull2(t.BackwardIterator())
-}
-
 // Returns the current number of nodes in the tree.
 func (t *RedBlackTree[T, V]) Size() int {
 	return t.treeSize
