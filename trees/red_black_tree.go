@@ -41,6 +41,11 @@ type RedBlackTree[T cmp.Ordered, V any] struct {
 	treeSize int
 }
 
+type iterator[T cmp.Ordered, V any] struct {
+	current *RedBlackTreeNode[T, V]
+	tree    *RedBlackTree[T, V]
+}
+
 // Returns a pointer to an instance of a RedBlackTree struct.
 func NewRedBlackTree[T cmp.Ordered, V any]() *RedBlackTree[T, V] {
 	nilNode := &RedBlackTreeNode[T, V]{
@@ -227,6 +232,16 @@ func (t *RedBlackTree[T, V]) IsEmpty() bool {
 	return t.Root == t.NIL
 }
 
+// Returns the current number of nodes in the tree.
+func (t *RedBlackTree[T, V]) Size() int {
+	return t.treeSize
+}
+
+// Clears and resets the tree to an empty tree.
+func (t *RedBlackTree[T, V]) Clear() {
+	t.Root = t.NIL
+}
+
 // Prints the key value pairs in the tree.
 // The ordering is 'InOrder' sorted ordering.
 func (t *RedBlackTree[T, V]) PrintTree() {
@@ -264,7 +279,7 @@ func (t *RedBlackTree[T, V]) PrintTree() {
 // Returns a 'push' iterator to the tree.
 // Works with 'for range' expression.
 // Returns key-value pair per iteration in 'InOrder' sorted ordering.
-// Values are returned starting from the first index.
+// Values are returned starting from the first item.
 func (t *RedBlackTree[T, V]) ForwardIterator() iter.Seq2[T, V] {
 	type Pair struct {
 		key   T
@@ -309,7 +324,7 @@ func (t *RedBlackTree[T, V]) ForwardIterator() iter.Seq2[T, V] {
 // Returns a 'push' iterator to the tree.
 // Works with 'for range' expression.
 // Returns key-value pair per iteration in 'InOrder' sorted ordering.
-// Values are returned from the starting from the last index.
+// Values are returned from the starting from the last item.
 func (t *RedBlackTree[T, V]) BackwardIterator() iter.Seq2[T, V] {
 	type Pair struct {
 		key   T
@@ -351,14 +366,36 @@ func (t *RedBlackTree[T, V]) BackwardIterator() iter.Seq2[T, V] {
 	}
 }
 
-// Returns the current number of nodes in the tree.
-func (t *RedBlackTree[T, V]) Size() int {
-	return t.treeSize
+func (t *RedBlackTree[T, V]) Begin() *iterator[T, V] {
+	return &iterator[T, V]{
+		current: t.minimum(t.Root),
+		tree:    t,
+	}
 }
 
-// Clears and resets the tree to an empty tree.
-func (t *RedBlackTree[T, V]) Clear() {
-	t.Root = t.NIL
+func (t *RedBlackTree[T, V]) End() *iterator[T, V] {
+	return &iterator[T, V]{
+		current: t.maximum(t.Root),
+		tree:    t,
+	}
+}
+
+func (it *iterator[T, V]) Next() {
+	if it.current == it.tree.NIL {
+		return
+	}
+	it.current = it.tree.inorderSuccessor(it.current)
+}
+
+func (it *iterator[T, V]) Prev() {
+	if it.current == it.tree.NIL {
+		return
+	}
+	it.current = it.tree.inOrderPredecessor(it.current)
+}
+
+func (it *iterator[T, V]) Val() (T, V) {
+	return it.current.Key, it.current.Value
 }
 
 func (t *RedBlackTree[T, V]) insertFixup(node *RedBlackTreeNode[T, V]) {
@@ -624,6 +661,7 @@ func (t *RedBlackTree[T, V]) rotateRight(node *RedBlackTreeNode[T, V]) {
 	x.Parent = y
 }
 
+// Transplants subtree rooted at n with m
 func (t *RedBlackTree[T, V]) transplant(n, m *RedBlackTreeNode[T, V]) {
 	// We need to deal with three cases
 	// If n is root node
@@ -647,9 +685,48 @@ func (t *RedBlackTree[T, V]) transplant(n, m *RedBlackTreeNode[T, V]) {
 	m.Parent = n.Parent
 }
 
+// Returns minimum node in a subtree rooted at 'node'
 func (t *RedBlackTree[T, V]) minimum(node *RedBlackTreeNode[T, V]) *RedBlackTreeNode[T, V] {
 	for node.Left != t.NIL {
 		node = node.Left
 	}
 	return node
+}
+
+// Returns maximum node in a subtree rooted at 'node'
+func (t *RedBlackTree[T, V]) maximum(node *RedBlackTreeNode[T, V]) *RedBlackTreeNode[T, V] {
+	if node.Right != t.NIL {
+		node = node.Right
+	}
+	return node
+}
+
+// Returns inorder successor node for current node.
+func (t *RedBlackTree[T, V]) inorderSuccessor(node *RedBlackTreeNode[T, V]) *RedBlackTreeNode[T, V] {
+	if node.Right != t.NIL {
+		return t.minimum(node.Right)
+	}
+
+	parent := node.Parent
+
+	for parent != t.NIL && node == parent.Right {
+		node = parent
+		parent = parent.Parent
+	}
+	return parent
+}
+
+// Returns inorder predecessor node for current node.
+func (t *RedBlackTree[T, V]) inOrderPredecessor(node *RedBlackTreeNode[T, V]) *RedBlackTreeNode[T, V] {
+	if node.Left != t.NIL {
+		return t.maximum(node.Left)
+	}
+
+	parent := node.Parent
+
+	for parent != t.NIL && node == parent.Left {
+		node = parent
+		parent = parent.Parent
+	}
+	return parent
 }
