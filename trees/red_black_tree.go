@@ -366,6 +366,7 @@ func (t *RedBlackTree[T, V]) BackwardIterator() iter.Seq2[T, V] {
 	}
 }
 
+// Returns the first node in the tree in an 'in-order' ordering.
 func (t *RedBlackTree[T, V]) Begin() *iterator[T, V] {
 	return &iterator[T, V]{
 		current: t.minimum(t.Root),
@@ -373,6 +374,7 @@ func (t *RedBlackTree[T, V]) Begin() *iterator[T, V] {
 	}
 }
 
+// Returns the last node in the tree in an 'in-order' ordering.
 func (t *RedBlackTree[T, V]) End() *iterator[T, V] {
 	return &iterator[T, V]{
 		current: t.maximum(t.Root),
@@ -380,6 +382,7 @@ func (t *RedBlackTree[T, V]) End() *iterator[T, V] {
 	}
 }
 
+// Returns next node in the tree from current node in an 'in-order' ordering.
 func (it *iterator[T, V]) Next() {
 	if it.current == it.tree.NIL {
 		return
@@ -387,6 +390,7 @@ func (it *iterator[T, V]) Next() {
 	it.current = it.tree.inorderSuccessor(it.current)
 }
 
+// Returns previous node in the tree from current node in an 'in-order' ordering.
 func (it *iterator[T, V]) Prev() {
 	if it.current == it.tree.NIL {
 		return
@@ -394,6 +398,7 @@ func (it *iterator[T, V]) Prev() {
 	it.current = it.tree.inOrderPredecessor(it.current)
 }
 
+// Returns value at current iterator node.
 func (it *iterator[T, V]) Val() (T, V) {
 	return it.current.Key, it.current.Value
 }
